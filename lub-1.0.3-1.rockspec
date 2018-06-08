@@ -1,16 +1,16 @@
 -- This file was automatically generated for the LuaDist project.
 
 package = "lub"
-version = "1.0.2-1"
+version = "1.0.3-1"
 -- LuaDist source
 source = {
-  tag = "1.0.2-1",
+  tag = "1.0.3-1",
   url = "git://github.com/LuaDist-testing/lub.git"
 }
 -- Original source
 -- source = {
---   url = "http://lubyk.org/archive/lub-REL-1.0.2.tar.gz",
---   dir = 'lub-REL-1.0.2',
+--   url = 'https://github.com/lubyk/lub/archive/REL-1.0.3.tar.gz',
+--   dir = 'lub-REL-1.0.3',
 -- }
 description = {
   summary = "Lubyk base module.",
@@ -21,9 +21,9 @@ description = {
 
     lub.Dir: a simple directory traversal class.
 
-    lub.Template: a simple templating class.
+    lub.Template: a simple templating class that uses  like syntax.
   ]],
-  homepage = "http://lubyk.org",
+  homepage = "http://doc.lubyk.org/lub.html",
   license = "MIT"
 }
 dependencies = {
@@ -33,6 +33,7 @@ dependencies = {
 build = {
   type = 'builtin',
   modules = {
+    -- Plain Lua files
     ['lub'            ] = 'lub/init.lua',
     ['lub.Autoload'   ] = 'lub/Autoload.lua',
     ['lub.Dir'        ] = 'lub/Dir.lua',

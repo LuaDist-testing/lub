@@ -39,14 +39,14 @@ function lib.new(source)
   if type(source) == 'string' then
     self = {source = source}
   else
-    self = source
+    self = assert(source)
     -- Grab source from path...
-    local file = io.open(self.path, 'r')
+    local file = assert(io.open(self.path, 'r'))
     self.source = file:read('*a')
     file:close()
   end
   setmetatable(self, lib)
-  private.makeFunction(self, source)
+  private.makeFunction(self, self.source)
   return self
 end
 

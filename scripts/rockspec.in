@@ -1,9 +1,9 @@
-{% mod = lub %}
-package = "{{mod.type}}"
-version = "{{mod.VERSION}}-1"
+{% local lfs = require 'lfs' %}
+package = "{{lib.type}}"
+version = "{{lib.VERSION}}-1"
 source = {
-  url = "http://lubyk.org/archive/{{mod.type}}-REL-{{mod.VERSION}}.tar.gz",
-  dir = '{{mod.type}}-REL-{{mod.VERSION}}',
+  url = "http://lubyk.org/archive/{{lib.type}}-REL-{{lib.VERSION}}.tar.gz",
+  dir = '{{lib.type}}-REL-{{lib.VERSION}}',
 }
 description = {
   summary = "Lubyk base module.",
@@ -14,23 +14,26 @@ description = {
 
     lub.Dir: a simple directory traversal class.
 
-    lub.Template: a simple templating class.
+    lub.Template: a simple templating class that uses {{moustache}} like syntax.
   ]],
-  homepage = "http://lubyk.org",
+  homepage = "http://doc.lubyk.org/{{lib.type}}.html",
   license = "MIT"
 }
 dependencies = {
-  "lua >= 5.1, < 5.3",
-  "luafilesystem >= 1.5.0",
+{% for _, v in ipairs(lib.DEPENDS) do %}
+  "{{v}}",
+{% end %}
 }
 build = {
   type = 'builtin',
   modules = {
-    {{string.format("[%-17s] = '%s/%s.lua'", "'"..mod.type.."'", mod.type, 'init')}},
-{% for file in lfs.dir(mod.type) do %}
+    -- Plain Lua files
+    {{string.format("[%-17s] = '%s/%s.lua'", "'"..lib.type.."'", lib.type, 'init')}},
+{% for file in lfs.dir(lib.type) do %}
 {% if file ~= 'init.lua' and file:match('.lua$') then file = file:sub(1, -5) %}
-    {{string.format("[%-17s] = '%s/%s.lua'", "'"..mod.type..'.'..file.."'", mod.type, file)}},
+    {{string.format("[%-17s] = '%s/%s.lua'", "'"..lib.type..'.'..file.."'", lib.type, file)}},
 {% end %}
 {% end %}
   },
 }
+
