@@ -3,6 +3,7 @@
   # lub.Template test
 
 --]]------------------------------------------------------
+package.path = './?/init.lua;'..package.path
 local lub    = require 'lub'
 local lut    = require 'lut'
 local should = lut.Test 'lub.Template'
@@ -13,11 +14,12 @@ function should.autoload()
 end
 
 function should.transformToLua()
-  local code = lub.Template [[
+  local code = lub.Template [=[
+// [[xx]] force use of = sign
 {% for h in self:headers() do %}
 #include "{{h.path}}"
 {% end %}
-]]
+]=]
   assertMatch('_out_.%[=%[.#include ".', code.lua)
 end
 

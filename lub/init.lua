@@ -39,13 +39,38 @@ local lib = {}
 --
 
 -- Current version respecting [semantic versioning](http://semver.org).
-lib.VERSION = '1.0.7'
+lib.VERSION = '1.1.0'
 
 lib.DEPENDS = { -- doc
-  -- Compatible with Lua 5.1, 5.2 and LuaJIT
-  "lua >= 5.1, < 5.3",
+  -- Compatible with Lua 5.1 to 5.3 and LuaJIT
+  "lua >= 5.1, < 5.4",
   -- Uses [Lua Filesystem](http://keplerproject.github.io/luafilesystem/)
   "luafilesystem >= 1.4.0",
+}
+
+-- Basic description for luarocks.
+lib.DESCRIPTION = {
+  summary = "Lubyk base module.",
+  detailed = [[
+    lub: helper code, class declaration.
+
+    lub.Autoload: autoloading classes in modules.
+
+    lub.Dir: a simple directory traversal class.
+
+    lub.Template: a simple templating class that uses {{moustache}} like syntax.
+
+    lub.Param: script parameter save/restore.
+  ]],
+  homepage = "http://doc.lubyk.org/lub.html",
+  author   = "Gaspard Bucher",
+  license  = "MIT",
+}
+
+-- Build settings for lut.Builder
+lib.BUILD = {
+  github   = "lubyk",
+  pure_lua = true,
 }
 
 local SYSTINFO
@@ -716,8 +741,9 @@ end
 --
 --   os.execute(string.format('latex %s', lub.shellQuote(filepath)))
 function lib.shellQuote(str)
-  str = gsub(str, '\\', '\\\\')
-  return '"' .. gsub(str, '"', '\\"') .. '"'
+  return '"' .. gsub(str, '[\\%$"]', function(x)
+    return '\\' .. x
+  end) .. '"'
 end
 
 function private.makePathPart(path, fullpath)
