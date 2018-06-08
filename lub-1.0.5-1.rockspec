@@ -1,16 +1,16 @@
 -- This file was automatically generated for the LuaDist project.
 
 package = "lub"
-version = "1.0.4-1"
+version = "1.0.5-1"
 -- LuaDist source
 source = {
-  tag = "1.0.4-1",
+  tag = "1.0.5-1",
   url = "git://github.com/LuaDist-testing/lub.git"
 }
 -- Original source
 -- source = {
---   url = 'https://github.com/lubyk/lub/archive/REL-1.0.4.tar.gz',
---   dir = 'lub-REL-1.0.4',
+--   url = 'https://github.com/lubyk/lub/archive/REL-1.0.5.tar.gz',
+--   dir = 'lub-REL-1.0.5',
 -- }
 description = {
   summary = "Lubyk base module.",
@@ -29,7 +29,7 @@ description = {
 
 dependencies = {
   "lua >= 5.1, < 5.3",
-  "luafilesystem >= 1.6.0",
+  "luafilesystem >= 1.4.0",
 }
 build = {
   type = 'builtin',

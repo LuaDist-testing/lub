@@ -1,3 +1,7 @@
+== 1.0.5 2014-06-23
+
+  * Changing lfs dependency to lfs 1.4.0.
+
 == 1.0.4 2014-05-08
 
   * Added 'plat()' method to get current platform name.
