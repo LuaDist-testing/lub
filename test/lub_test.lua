@@ -332,6 +332,12 @@ function should.log()
   assertMatch('Hello', out[2])
 end
 
+function should.returnPlatform()
+  local plat = lub.plat()
+  local choices = { macosx = true, linux = true, unix = true, win32 = true}
+  assertTrue(choices[plat])
+end
+
 function should.declareClass()
   local c = lub.class 'foo.Bar'
   assertEqual('foo.Bar', c.type)
@@ -390,6 +396,22 @@ function should.returnParentDirectory()
   local parent, child = lub.dir('/a/b/c')
   assertEqual('/a/b', parent)
   assertEqual('c', child)
+end
+
+function should.listOrderedKeys()
+  local keys = lub.keys {
+    cool = 'the gang',
+    allo = 'quoi',
+    [2] = 'two',
+    Ab = '1',
+    [1] = 'one',
+    [3] = 'three',
+  }
+  assertValueEqual({
+    'Ab',
+    'allo',
+    'cool',
+  }, keys)
 end
 
 -- Disable coverage testing for deprecated pathDir.

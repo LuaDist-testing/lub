@@ -1,28 +1,28 @@
 --[[--------------------
   # Lubyk base module <a href="https://travis-ci.org/lubyk/lub"><img src="https://travis-ci.org/lubyk/lub.png" alt="Build Status"></a> 
 
-  Currently, this module contains core functions (code loading, templates, 
-  helpers).
+  This module contains core functions (code loading, templates, helpers).
 
   <html><a href="https://github.com/lubyk/lub"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a></html>
   
-  This module is part of the [lubyk](http://lubyk.org) project. *MIT license*
-  &copy; Gaspard Bucher 2014.
+  *MIT license* &copy Gaspard Bucher 2014.
 
   ## Installation
   
   With [luarocks](http://luarocks.org):
 
     $ luarocks install lub
-  
-  With [luadist](http://luadist.org):
-
-    $ luadist install lub
 
 --]]--------------------
+local lfs  = require 'lfs'
+local core = require 'lub.core'
+
 local private = {}
-local gsub,        sub,        match,        len,        pairs, ipairs =
-      string.gsub, string.sub, string.match, string.len, pairs, ipairs
+local format,        gsub,        sub,        match,        len,        pairs, ipairs =
+      string.format, string.gsub, string.sub, string.match, string.len, pairs, ipairs
+local yield,           insert,       sort,       remove,       type =
+      coroutine.yield, table.insert, table.sort, table.remove, type
+
 local TAIL_CALL = rawget(_G, 'setfenv') and '%(tail call%)' or '%(%.%.%.tail calls%.%.%.%)'
 
 local CALL_TO_NEW = {__call = function(lib, ...) return lib.new(...) end}
@@ -38,22 +38,30 @@ local lib = {}
 
 -- ## Dependencies
 --
--- + lfs: luafilesystem
-local lfs = require 'lfs'
 
 -- + lub.core: lub.Poller, lub.Thread, lub.plat
 -- local core = require 'lub.core'
 
 -- Current version respecting [semantic versioning](http://semver.org).
-lib.VERSION = '1.0.3'
+lib.VERSION = '1.0.4'
 
 lib.DEPENDS = { -- doc
   -- Compatible with Lua 5.1, 5.2 and LuaJIT
   "lua >= 5.1, < 5.3",
   -- Uses [Lua Filesystem](http://keplerproject.github.io/luafilesystem/)
-  "luafilesystem >= 1.5.0",
+  "luafilesystem >= 1.6.0",
 }
--- FIXME We need to have lub.plat contain current platform name such as 'macosx', 'linux' or 'win32'
+
+-- # Environment information
+--
+-- Get name of currently running platform. Values are 'linux',
+-- 'macosx', 'unix' and 'win32'.
+--
+-- function lib.plat()
+
+-- nodoc
+lib.plat = core.plat
+
 
 -- # Class management
 --
@@ -68,9 +76,19 @@ lib.DEPENDS = { -- doc
 -- Usage:
 --
 --   local lub = require 'lub'
---   local lib = lub.class 'lub.Doc'
+--   local lut = require 'lut'
+--   local lib = lub.class 'lut.Doc'
+--
 --   -- ...
 --   return lib
+--
+-- WARN When using an initial lua table, make sure to use parenthesis around the
+-- function call:
+--
+--   local lib = lub.class('lut.Doc', {
+--     is_cool = true,
+--   })
+--   
 function lib.class(class_name, tbl)
   local lib = tbl or {}
   lib.type = class_name
@@ -167,7 +185,7 @@ function lib.IDDFS(data, func, max_depth)
     elseif depth < max_depth then
       depth = depth + 1
     else
-      error(string.format('Could not finish search: maximal depth of %i reached.', max_depth))
+      error(format('Could not finish search: maximal depth of %i reached.', max_depth))
     end
   end
 end
@@ -206,7 +224,7 @@ function lib.BFS(data, func, max_depth)
   end
 
   if d and d > max_depth then
-    error(string.format('Could not finish search: maximal depth of %i reached.', max_depth))
+    error(format('Could not finish search: maximal depth of %i reached.', max_depth))
   else
     return nil
   end
@@ -307,7 +325,7 @@ lib.exist = lib.fileType
 -- accepts either a single `path` argument or a `basepath` and relative `path`.
 function lib.content(basepath, path)
   if path then
-    path = string.format('%s/%s', basepath, path)
+    path = format('%s/%s', basepath, path)
   else
     path = basepath
   end
@@ -351,7 +369,7 @@ end
 -- in new_path.
 function lib.copy(path, new_path)
   lib.makePath(lib.dir(new_path))
-  return os.execute(string.format('cp %s %s', lib.shellQuote(path), lib.shellQuote(new_path)))
+  return os.execute(format('cp %s %s', lib.shellQuote(path), lib.shellQuote(new_path)))
 end
 
 -- Delete the file located at `path`. Does nothing if the element at `path` does
@@ -359,7 +377,7 @@ end
 function lib.rmFile(path)
   local typ = lib.fileType(path)
   if not typ then return end
-  assert(typ == 'file', string.format("Cannot remove '%s': it is a %s.", path, typ))
+  assert(typ == 'file', format("Cannot remove '%s': it is a %s.", path, typ))
   os.remove(path)
 end
 
@@ -376,7 +394,7 @@ function lib.rmTree(path, recursive)
     if not recursive then
       return lfs.rmdir(fullpath)
     else
-      local code = string.format('rm -r %s', lib.shellQuote(fullpath))
+      local code = format('rm -r %s', lib.shellQuote(fullpath))
       if os.execute(code) == 0 then
         return true
       else
@@ -419,7 +437,7 @@ end
 --   --> '/home/foo/baz'
 function lib.absolutizePath(path, basepath)
   if not match(path, '^/') then
-    path = string.format('%s/%s', basepath or lfs.currentdir(), path)
+    path = format('%s/%s', basepath or lfs.currentdir(), path)
   end
   -- resolve '/./' and '/../'
   local parts = lib.split(path, '/')
@@ -431,10 +449,10 @@ function lib.absolutizePath(path, basepath)
       -- move back
       -- 1 = '', 2 = 'xxx', 3 = '..' ==> 1 = ''
       if i > 2 then
-        table.remove(path, #path)
+        remove(path, #path)
       end
     else
-      table.insert(path, part)
+      insert(path, part)
     end
   end
   return lib.join(path, '/')
@@ -482,7 +500,7 @@ function lib.split(str, pat)
       if s == '' then
         break
       else
-        table.insert(t, s)
+        insert(t, s)
       end
       i = i + 1
     end
@@ -491,13 +509,13 @@ function lib.split(str, pat)
     local last_end = 1
     local s, e, cap = string.find(str,fpat, 1)
     while s do
-      table.insert(t,cap)
+      insert(t,cap)
       last_end = e+1
       s, e, cap = str:find(fpat, last_end)
     end
     if last_end <= #str then
       cap = str:sub(last_end)
-      table.insert(t, cap)
+      insert(t, cap)
     end
   end
   return t
@@ -519,6 +537,22 @@ function lib.join(list, sep)
   return res or ''
 end
 
+-- Get the ordered list of *string* keys from a table. If `no_order` is true, keys are
+-- not sorted.
+function lib.keys(dict, no_order)
+  local res, n = {}, 0
+  for k, v in pairs(dict) do
+    if type(k) == 'string' then
+      n = n + 1
+      res[n] = k
+    end
+  end
+  if not no_order then
+    sort(res)
+  end
+  return res
+end
+
 -- Insert `elem` into a `list`, keeping entries in "list" sorted. If elem is not
 -- a string, the `elem[key]` is used to get a string for sorting.
 function lib.insertSorted(list, elem, key)
@@ -535,9 +569,9 @@ function lib.insertSorted(list, elem, key)
     end
   end
   if pos == -1 then
-    table.insert(list, elem)
+    insert(list, elem)
   else
-    table.insert(list, pos, elem)
+    insert(list, pos, elem)
   end
 end
 
@@ -620,7 +654,7 @@ function lib.log(...)
   end
   local file, line = match(part, '^([^:]+):([^:]+):')
   if file and line then
-    print(string.format('%s:%i:', file, line), ...)
+    print(format('%s:%i:', file, line), ...)
   else
     print(part, ...)
   end
@@ -644,10 +678,10 @@ function lib.deprecation(lib_name, old, new, ...)
   local trace = lib.split(debug.traceback(), '\n\t')[4]
   local arg = ...
   if arg then
-    print(string.format("[DEPRECATION] %s\n\t'%s.%s' is deprecated. Please use '%s.%s' instead.", trace, lib_name, old, lib_name, new))
+    print(format("[DEPRECATION] %s\n\t'%s.%s' is deprecated. Please use '%s.%s' instead.", trace, lib_name, old, lib_name, new))
     return package.loaded[lib_name][new](...)
   else
-    print(string.format("[DEPRECATION] %s\n\t'%s.%s' is deprecated and will be removed. Please use '%s' instead.", trace, lib_name, old, new))
+    print(format("[DEPRECATION] %s\n\t'%s.%s' is deprecated and will be removed. Please use '%s' instead.", trace, lib_name, old, new))
   end
 end
 
@@ -662,7 +696,7 @@ end
 function private.makePathPart(path, fullpath)
   local file_type = lib.fileType(path)
   if file_type == 'file' then
-    error(string.format("Could not build path '%s' ('%s' is a file).", fullpath, path))
+    error(format("Could not build path '%s' ('%s' is a file).", fullpath, path))
   elseif file_type == 'directory' then
     return -- done
   else
@@ -685,8 +719,5 @@ lib.Autoload('lub', lib)
 
 
 -- # Classes
---
--- WARN: We are currently migrating content from [lk](lk.html) module. Not all
--- classes have been migrated and documented.
 
 return lib
